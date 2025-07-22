@@ -1,12 +1,12 @@
 # MIRA Federatieve Gegevensuitwisseling - Proof of Concept
 
-**Open Source-gebaseerd Proof-of-Concept voor federatieve gegevensuitwisseling gebaseerd op MIRA Migratie Architectuur**
+**Open Source-gebaseerd Proof-of-Concept voor federatieve gegevensuitwisseling gebaseerd op MIRA Migratieketen Architectuur**
 
 ---
 
 ## Overzicht
 
-Deze container-gebaseerde opstelling biedt een Proof-of-Concept (PoC) voor federatieve gegevensuitwisseling, geïnspireerd door de MIRA Migratie Architectuur. Het systeem combineert verschillende open source componenten voor event streaming, API-gateway, identiteit & toegangsbeheer, logging, API-documentatie en monitoring.
+Deze container-gebaseerde opstelling biedt een Proof-of-Concept (PoC) voor federatieve gegevensuitwisseling, geïnspireerd door de MIRA Migratieketen Architectuur. Het systeem combineert verschillende open source componenten voor event streaming, API-gateway, identiteit & toegangsbeheer, logging, API-documentatie en monitoring.
 
 Het doel is een robuuste en schaalbare basis te bieden voor het uitwisselen van gegevens tussen verschillende domeinen en organisaties, met nadruk op veiligheid, transparantie en flexibiliteit.
 
@@ -75,6 +75,6 @@ Dit script voert `docker compose up -d` uit en zorgt dat alle services opgestart
 
 ## MIRA Migratie Architectuur
 
-Dit PoC-project is gebaseerd op de principes van de MIRA Migratie Architectuur, gericht op veilige, schaalbare en federatieve gegevensuitwisseling tussen verschillende partijen. Het stelt organisaties in staat om op een gestandaardiseerde en gecontroleerde manier data te delen zonder directe afhankelijkheid van centrale systemen.
+Dit PoC-project is gebaseerd op de principes van de MIRA Migratieketen Architectuur, gericht op veilige, schaalbare en federatieve gegevensuitwisseling tussen verschillende partijen. Het stelt organisaties in staat om op een gestandaardiseerde en gecontroleerde manier data te delen zonder directe afhankelijkheid van centrale systemen.
 
-Bezoek de officiële website van de MIRA Migratie Architectuur: [MIRA Online](https://miraonline.nl).
+Bezoek de officiële website van de MIRA Migratieketen Architectuur: [MIRA Online](https://miraonline.nl).
