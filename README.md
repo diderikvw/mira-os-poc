@@ -73,7 +73,7 @@ Dit script voert `docker compose up -d` uit en zorgt dat alle services opgestart
 
 ---
 
-## MIRA Migratie Architectuur
+## MIRA Migratieketen Architectuur
 
 Dit PoC-project is gebaseerd op de principes van de MIRA Migratieketen Architectuur, gericht op veilige, schaalbare en federatieve gegevensuitwisseling tussen verschillende partijen. Het stelt organisaties in staat om op een gestandaardiseerde en gecontroleerde manier data te delen zonder directe afhankelijkheid van centrale systemen.
 
