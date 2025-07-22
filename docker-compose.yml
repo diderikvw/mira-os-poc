@@ -112,16 +112,6 @@ services:
     depends_on:
       - elasticsearch
 
-  # 5. Mock Services (simuleren ketenpartners)
-  # mock-ind-service:
-  #   image: mockserver/mockserver:5.15.0
-  #   ports:
-  #     - "8010:1080"
-  #   environment:
-  #     MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
-  #   volumes:
-  #     - ./mock-services:/config
-
   mock-ind-service:
     image: node:alpine
     working_dir: /data
@@ -131,14 +121,6 @@ services:
     ports:
       - "8010:1080"
 
-  # mock-gemeente-service:
-  #   image: mockserver/mockserver:5.15.0
-  #   ports:
-  #     - "8011:1080"
-  #   environment:
-  #     MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
-  #   volumes:
-  #     - ./mock-services:/config
   mock-gemeente-service:
     image: node:alpine
     working_dir: /data
