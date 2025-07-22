@@ -1,0 +1,197 @@
+#version: "3.8"
+
+services:
+  # 1. Event Hub - NATS JetStream (CloudEvents compatible)
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "4222:4222" # Client connections
+      - "8222:8222" # Monitoring
+    command: ["--jetstream", "--store_dir=/data", "--http_port=8222"]
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8222/healthz",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # 2. API Gateway - Kong
+  kong-database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kong
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kong-migration:
+    image: kong:3.4
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+    command: kong migrations bootstrap
+    restart: on-failure
+
+  kong:
+    image: kong:3.4
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migration:
+        condition: service_completed_successfully
+    ports:
+      - "7000:8000" # API Gateway
+      - "7001:8001" # Admin API
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  # 3. Identity & Access Management - Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: dev-file
+    command: start-dev
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
+  # 4. Logging - ELK Stack (simplified)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+  # 5. Mock Services (simuleren ketenpartners)
+  # mock-ind-service:
+  #   image: mockserver/mockserver:5.15.0
+  #   ports:
+  #     - "8010:1080"
+  #   environment:
+  #     MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
+  #   volumes:
+  #     - ./mock-services:/config
+
+  mock-ind-service:
+    image: node:alpine
+    working_dir: /data
+    command: ["npx", "http-server", "-p", "1080", "--cors"]
+    volumes:
+      - ./mock-services/ind:/data
+    ports:
+      - "8010:1080"
+
+  # mock-gemeente-service:
+  #   image: mockserver/mockserver:5.15.0
+  #   ports:
+  #     - "8011:1080"
+  #   environment:
+  #     MOCKSERVER_PROPERTY_FILE: /config/mockserver.properties
+  #   volumes:
+  #     - ./mock-services:/config
+  mock-gemeente-service:
+    image: node:alpine
+    working_dir: /data
+    command: ["npx", "http-server", "-p", "1080", "--cors"]
+    volumes:
+      - ./mock-services/gemeente:/data
+    ports:
+      - "8011:1080"
+
+  # 6. API Documentation - Swagger UI
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.9.0
+    ports:
+      - "8090:8080"
+    environment:
+      URLS: |
+        [
+          {
+            "url": "http://localhost:8010/openapi.json",
+            "name": "IND Service API"
+          },
+          {
+            "url": "http://localhost:8011/openapi.json", 
+            "name": "Gemeente Service API"
+          }
+        ]
+
+  # 7. Monitoring - Grafana + Prometheus
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  nats_data:
+  postgres_data:
+  keycloak_data:
+  elasticsearch_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: mira-network
